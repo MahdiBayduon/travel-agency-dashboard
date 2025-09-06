@@ -23,13 +23,13 @@ const RootNavbar = () => {
                 </Link>
 
                 <aside>
-                    {user.status === 'admin' && (
+                    {user?.status === 'admin' && (
                         <Link to="/dashboard" className={cn('text-base font-normal text-white', {"text-dark-100": location.pathname.startsWith('/travel')})}>
                             Admin Panel
                         </Link>
                     )}
 
-                    <img src={user?.imageUrl || '/assets/images/david.wepb'} alt="user" referrerPolicy="no-referrer" />
+                    <img src={user?.imageUrl || '/assets/images/david.webp'} alt="user" referrerPolicy="no-referrer" />
 
                     <button onClick={handleLogout} className="cursor-pointer">
                         <img

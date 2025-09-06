@@ -11,19 +11,35 @@ import {account} from "~/appwrite/client";
 import {useNavigate} from "react-router";
 
 export const loader = async () => {
-    const response = await fetch('https://restcountries.com/v3.1/all');
-    const data = await response.json();
+    try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if data is an array
+        if (!Array.isArray(data)) {
+            throw new Error('API returned invalid data format');
+        }
 
-    return data.map((country: any) => ({
-        name: country.flag + country.name.common,
-        coordinates: country.latlng,
-        value: country.name.common,
-        openStreetMap: country.maps?.openStreetMap,
-    }))
+        return data.map((country: any) => ({
+            name: country.flag + country.name.common,
+            coordinates: country.latlng,
+            value: country.name.common,
+            openStreetMap: country.maps?.openStreetMap,
+        }));
+    } catch (error) {
+        console.error('Error fetching countries:', error);
+        // Return empty array as fallback
+        return [];
+    }
 }
 
 const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
-    const countries = loaderData as Country[];
+    const countries = (loaderData as Country[]) || [];
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<TripFormData>({
@@ -106,6 +122,21 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
             coordinates: countries.find((c: Country) => c.name === formData.country)?.coordinates || []
         }
     ]
+
+    // Show loading or error state if countries data is not available
+    if (countries.length === 0) {
+        return (
+            <main className="flex flex-col gap-10 pb-20 wrapper">
+                <Header title="Add a New Trip" description="View and edit AI Generated travel plans" />
+                <section className="mt-2.5 wrapper-md">
+                    <div className="text-center py-8">
+                        <p className="text-gray-500">Loading countries data...</p>
+                        <p className="text-sm text-gray-400 mt-2">If this takes too long, please refresh the page.</p>
+                    </div>
+                </section>
+            </main>
+        );
+    }
 
     return (
         <main className="flex flex-col gap-10 pb-20 wrapper">
